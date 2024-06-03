@@ -1,14 +1,16 @@
 package tui
 
 import (
+	"fmt"
+
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+
+	"github.com/PhotoManager/internal"
+	"github.com/PhotoManager/utils"
 )
 
-var formCreatePhoto = &struct {
-	title string
-	url   string
-}{}
+var formCreatePhoto = &internal.MPhoto{}
 
 const (
 	title = iota
@@ -55,8 +57,9 @@ func (m *MCreateForm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.decreaseFocusCursor()
 		case tea.KeyEnter:
 			if m.focusCursor == url && m.inputs[title].Value() != "" {
-				//Saving
-				return RenderOptionListUpdate(func() tea.Msg { return RenderMsg{} })
+				res := utils.Must(internal.Create(*formCreatePhoto))
+				fmt.Printf("Create photo: %+v", res)
+				return m, nil
 			}
 			m.increaseFocusCursor()
 		case tea.KeyCtrlC, tea.KeyEsc:
@@ -105,8 +108,8 @@ func (m *MCreateForm) updateInputs() {
 	if formCreatePhoto == nil {
 		return
 	}
-	formCreatePhoto.title = m.inputs[title].Value()
-	formCreatePhoto.url = m.inputs[url].Value()
+	formCreatePhoto.Title = m.inputs[title].Value()
+	formCreatePhoto.Url = m.inputs[url].Value()
 }
 
 func RenderCreateFormView() string {
