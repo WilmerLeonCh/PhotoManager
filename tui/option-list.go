@@ -94,7 +94,7 @@ func (m *MOptionList) handleView() string {
 	case updateView:
 		return RenderUpdateFormView()
 	case deleteView:
-		return "DeleteView"
+		return RenderDeleteFormView()
 	default:
 		return ""
 	}
@@ -111,7 +111,7 @@ func (m *MOptionList) handleCmd() (tea.Model, tea.Cmd) {
 	case updateView:
 		return RenderUpdateFormUpdate()
 	case deleteView:
-		return m, nil
+		return RenderDeleteFormUpdate()
 	default:
 		return m, nil
 	}

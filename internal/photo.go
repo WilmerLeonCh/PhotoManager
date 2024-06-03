@@ -88,3 +88,19 @@ func Update(photo MPhoto) error {
 	}
 	return nil
 }
+
+func Delete(id int) error {
+	req, errNewReq := http.NewRequest(
+		http.MethodDelete,
+		fmt.Sprintf("%s/%d", BaseUrl, id),
+		nil)
+	if errNewReq != nil {
+		return fmt.Errorf("err | building http request: %v", errNewReq)
+	}
+	res, errDelete := http.DefaultClient.Do(req)
+	defer res.Body.Close()
+	if errDelete != nil {
+		return fmt.Errorf("err | deleting photo: %v", errDelete)
+	}
+	return nil
+}
