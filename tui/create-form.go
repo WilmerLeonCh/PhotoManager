@@ -13,8 +13,8 @@ import (
 var formCreatePhoto = &internal.MPhoto{}
 
 const (
-	title = iota
-	url
+	titleCreate = iota
+	urlCreate
 )
 
 type MCreateForm struct {
@@ -24,22 +24,22 @@ type MCreateForm struct {
 
 func NewMCreateForm() MCreateForm {
 	var inputs = make([]textinput.Model, 2)
-	inputs[title] = textinput.New()
-	inputs[title].Prompt = "Title: "
-	inputs[title].Placeholder = "lorem impsun ..."
-	inputs[title].Focus()
-	inputs[title].CharLimit = 50
-	inputs[title].Width = 50
+	inputs[titleCreate] = textinput.New()
+	inputs[titleCreate].Prompt = "Title: "
+	inputs[titleCreate].Placeholder = "lorem impsun ..."
+	inputs[titleCreate].Focus()
+	inputs[titleCreate].CharLimit = 50
+	inputs[titleCreate].Width = 50
 
-	inputs[url] = textinput.New()
-	inputs[url].Prompt = "Url: "
-	inputs[url].Placeholder = "https://..."
-	inputs[url].CharLimit = 1000
-	inputs[url].Width = 100
+	inputs[urlCreate] = textinput.New()
+	inputs[urlCreate].Prompt = "Url: "
+	inputs[urlCreate].Placeholder = "https://pexels.com/..."
+	inputs[urlCreate].CharLimit = 1000
+	inputs[urlCreate].Width = 100
 
 	return MCreateForm{
 		inputs:      inputs,
-		focusCursor: title,
+		focusCursor: titleCreate,
 	}
 }
 
@@ -56,7 +56,7 @@ func (m *MCreateForm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyShiftTab, tea.KeyUp:
 			m.decreaseFocusCursor()
 		case tea.KeyEnter:
-			if m.focusCursor == url && m.inputs[title].Value() != "" {
+			if m.focusCursor == urlCreate && m.inputs[titleCreate].Value() != "" {
 				res := utils.Must(internal.Create(*formCreatePhoto))
 				fmt.Printf("Create photo: %+v", res)
 				return m, nil
@@ -108,8 +108,8 @@ func (m *MCreateForm) updateInputs() {
 	if formCreatePhoto == nil {
 		return
 	}
-	formCreatePhoto.Title = m.inputs[title].Value()
-	formCreatePhoto.Url = m.inputs[url].Value()
+	formCreatePhoto.Title = m.inputs[titleCreate].Value()
+	formCreatePhoto.Url = m.inputs[urlCreate].Value()
 }
 
 func RenderCreateFormView() string {
