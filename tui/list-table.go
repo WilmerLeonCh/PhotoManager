@@ -3,6 +3,7 @@ package tui
 import (
 	"strconv"
 
+	"github.com/charmbracelet/bubbles/paginator"
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 
@@ -11,7 +12,8 @@ import (
 )
 
 type MListTable struct {
-	table table.Model
+	table     table.Model
+	paginator paginator.Model
 }
 
 func NewMListTable() MListTable {
@@ -27,8 +29,15 @@ func NewMListTable() MListTable {
 		table.WithFocused(true),
 		table.WithHeight(10),
 	)
+
+	mPaginator := paginator.New()
+	mPaginator.Type = paginator.Dots
+	mPaginator.PerPage = 10
+	mPaginator.SetTotalPages(len(tableRows))
+
 	return MListTable{
-		table: mTable,
+		table:     mTable,
+		paginator: mPaginator,
 	}
 }
 
@@ -38,8 +47,34 @@ func (m MListTable) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.Type {
+		case tea.KeyUp:
+			if m.table.Cursor() == 0 && m.paginator.Page == 0 {
+				break
+			}
+			if m.table.Cursor() == 0 {
+				m.paginator.PrevPage()
+				m.table.GotoBottom()
+			}
+			m.table, _ = m.table.Update(msg)
+			return m, nil
+		case tea.KeyDown:
+			if m.table.Cursor() == m.paginator.PerPage-1 && m.paginator.Page == m.paginator.TotalPages-1 {
+				break
+			}
+			if m.table.Cursor() == m.paginator.PerPage-1 {
+				m.paginator.NextPage()
+				m.table.GotoTop()
+			}
+			m.table, _ = m.table.Update(msg)
+			return m, nil
+		case tea.KeyLeft:
+			m.paginator.PrevPage()
+		case tea.KeyRight:
+			m.paginator.NextPage()
 		case tea.KeyCtrlC, tea.KeyEsc:
 			return RenderOptionListUpdate(func() tea.Msg { return RenderMsg{} })
+		default:
+			break
 		}
 	}
 	m.table, _ = m.table.Update(msg)
@@ -47,7 +82,11 @@ func (m MListTable) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m MListTable) View() string {
-	return m.table.View()
+	s := "List & Search photos\n\n"
+	s += m.table.View() + "\n\n"
+	s += m.paginator.View() + "\n\n"
+	s += "Press 'ctrl+c' or 'esc' to quit."
+	return s
 }
 
 func mapToTableRow(mMPhotos []internal.MPhoto) (res []table.Row) {
