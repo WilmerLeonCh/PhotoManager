@@ -62,7 +62,7 @@ func (m *MOptionList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyCtrlC, tea.KeyEsc:
 			return m, tea.Quit
 		default:
-			return m, nil
+			break
 		}
 	}
 	return m, nil
@@ -86,9 +86,9 @@ func (m *MOptionList) decreaseViewCursor() {
 func (m *MOptionList) handleView() string {
 	switch m.tuiSelected {
 	case optionListView:
-		return m.RenderOptionList()
+		return m.RenderOptionListView()
 	case createView:
-		return "CreateView"
+		return RenderCreateFormView()
 	case listSearchView:
 		return "ListSearchView"
 	case updateView:
@@ -105,7 +105,7 @@ func (m *MOptionList) handleCmd() (tea.Model, tea.Cmd) {
 	case optionListView:
 		return m, nil
 	case createView:
-		return m, nil
+		return RenderCreateFormUpdate()
 	case listSearchView:
 		return m, nil
 	case updateView:
@@ -117,7 +117,7 @@ func (m *MOptionList) handleCmd() (tea.Model, tea.Cmd) {
 	}
 }
 
-func (m *MOptionList) RenderOptionList() string {
+func (m *MOptionList) RenderOptionListView() string {
 	s := "What would you like to do?\n\n"
 	for i, choice := range choiceActions {
 		cursor := " "
@@ -128,4 +128,9 @@ func (m *MOptionList) RenderOptionList() string {
 	}
 	s += "\nPress 'ctrl+c' or 'esc' to quit.\n"
 	return s
+}
+
+func RenderOptionListUpdate(msg tea.Msg) (tea.Model, tea.Cmd) {
+	m := NewMOptionList()
+	return m.Update(msg)
 }
