@@ -44,3 +44,26 @@ func Create(reqPhoto MPhoto) (*MPhoto, error) {
 	}
 	return &resPhoto, nil
 }
+
+func Read() ([]MPhoto, error) {
+	req, errNewReq := http.NewRequest(
+		http.MethodGet,
+		BaseUrl,
+		nil,
+	)
+	if errNewReq != nil {
+		return nil, fmt.Errorf("err | creating request: %v", errNewReq)
+	}
+
+	res, errDo := http.DefaultClient.Do(req)
+	if errDo != nil {
+		return nil, fmt.Errorf("err | doing request: %v", errDo)
+	}
+	defer res.Body.Close()
+
+	var resPhotos []MPhoto
+	if err := json.NewDecoder(res.Body).Decode(&resPhotos); err != nil {
+		return nil, fmt.Errorf("err | decoding response: %v", err)
+	}
+	return resPhotos, nil
+}
