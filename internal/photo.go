@@ -18,9 +18,9 @@ type MPhoto struct {
 const BaseUrl = "https://jsonplaceholder.typicode.com/photos"
 
 func Create(reqPhoto MPhoto) (*MPhoto, error) {
-	photoBody, errMarshaling := json.Marshal(reqPhoto)
-	if errMarshaling != nil {
-		return nil, fmt.Errorf("err | marshalling :%v", errMarshaling)
+	photoBody, errMarshal := json.Marshal(reqPhoto)
+	if errMarshal != nil {
+		return nil, fmt.Errorf("err | marshal body :%v", errMarshal)
 	}
 	req, errNewReq := http.NewRequest(
 		http.MethodPost,
@@ -66,4 +66,25 @@ func Read() ([]MPhoto, error) {
 		return nil, fmt.Errorf("err | decoding response: %v", err)
 	}
 	return resPhotos, nil
+}
+
+func Update(photo MPhoto) error {
+	photoBody, errMarshal := json.Marshal(photo)
+	if errMarshal != nil {
+		return fmt.Errorf("err | marshal body :%v", errMarshal)
+	}
+	req, errNewReq := http.NewRequest(
+		http.MethodPatch,
+		fmt.Sprintf("%s/%d", BaseUrl, photo.Id),
+		bytes.NewBuffer(photoBody),
+	)
+	if errNewReq != nil {
+		return fmt.Errorf("err | creating request: %v", errNewReq)
+	}
+	res, errDo := http.DefaultClient.Do(req)
+	defer res.Body.Close()
+	if errDo != nil {
+		return fmt.Errorf("err | doing request: %v", errDo)
+	}
+	return nil
 }
