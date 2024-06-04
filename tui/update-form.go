@@ -58,20 +58,22 @@ func (m *MUpdateForm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds = make([]tea.Cmd, len(m.inputs))
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "tab", "down":
+		switch msg.Type {
+		case tea.KeyTab, tea.KeyDown:
 			m.increaseFocusCursor()
-		case "shift+tab", "up":
+		case tea.KeyShiftTab, tea.KeyUp:
 			m.decreaseFocusCursor()
-		case "enter":
+		case tea.KeyEnter:
 			if m.focusCursor == len(m.inputs)-1 && m.inputs[titleCreate].Value() != "" {
 				utils.Throw(internal.Update(*formUpdatePhoto))
-				return RenderOptionListUpdate(tea.Msg(""))
+				return RenderOptionListUpdate(func() tea.Msg { return RenderMsg{} })
 			}
 			m.increaseFocusCursor()
-		case "ctrl+c", "q", "esc":
+		case tea.KeyCtrlC, tea.KeyEsc:
 			formUpdatePhoto = nil
-			return RenderOptionListUpdate(tea.Msg(""))
+			return RenderOptionListUpdate(func() tea.Msg { return RenderMsg{} })
+		default:
+			break
 		}
 		for i := range m.inputs {
 			m.inputs[i].Blur()
@@ -93,7 +95,7 @@ func (m *MUpdateForm) View() string {
 			s += "\n\n"
 		}
 	}
-	s += "\n\nPress 'ctrl+c', 'q' or 'esc' to quit."
+	s += "\n\nPress 'ctrl+c' or 'esc' to quit."
 	return s
 }
 

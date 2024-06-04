@@ -1,12 +1,14 @@
 package tui
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/PhotoManager/internal"
+	"github.com/PhotoManager/notification"
 	"github.com/PhotoManager/utils"
 )
 
@@ -34,11 +36,20 @@ func (m *MDeleteForm) Init() tea.Cmd { return textinput.Blink }
 func (m *MDeleteForm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "enter":
-			utils.Throw(internal.Delete(idDelete))
+		switch msg.Type {
+		case tea.KeyEnter:
+			errDelete := internal.Delete(idDelete)
+			notify := notification.SlackClient.NewSlackMessage(notification.MsgActionDelete)
+			if errDelete != nil {
+				notify.Attachments[0].Color = notification.StatusColorActionError
+				notify.Attachments[0].Title = errDelete.Error()
+			} else {
+				notify.Attachments[0].Color = notification.StatusColorActionSuccess
+				notify.Attachments[0].Title = fmt.Sprintf("success | deleting photo: %d", idDelete)
+			}
+			utils.Throw(notification.SlackClient.SendMsg(notify))
 			return RenderOptionListUpdate(func() tea.Msg { return RenderMsg{} })
-		case "ctrl+c", "q", "esc":
+		case tea.KeyCtrlC, tea.KeyEsc:
 			return RenderOptionListUpdate(func() tea.Msg { return RenderMsg{} })
 		}
 	}
@@ -51,7 +62,7 @@ func (m *MDeleteForm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *MDeleteForm) View() string {
 	s := "Delete Photo\n\n"
 	s += m.input.View()
-	s += "\n\nPress Enter to delete or Esc to cancel."
+	s += "\n\nPress 'ctrl+c' or 'esc' to quit."
 	return s
 }
 

@@ -7,6 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/PhotoManager/internal"
+	"github.com/PhotoManager/notification"
 	"github.com/PhotoManager/utils"
 )
 
@@ -56,10 +57,18 @@ func (m *MCreateForm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyShiftTab, tea.KeyUp:
 			m.decreaseFocusCursor()
 		case tea.KeyEnter:
-			if m.focusCursor == urlCreate && m.inputs[titleCreate].Value() != "" {
-				res := utils.Must(internal.Create(*formCreatePhoto))
-				fmt.Printf("Create photo: %+v", res)
-				return m, nil
+			if m.focusCursor == urlCreate && m.inputs[titleCreate].Value() != "" && m.inputs[urlCreate].Value() != "" {
+				resMPhoto, errCreate := internal.Create(*formCreatePhoto)
+				notify := notification.SlackClient.NewSlackMessage(notification.MsgActionCreate)
+				if errCreate != nil {
+					notify.Attachments[0].Color = notification.StatusColorActionError
+					notify.Attachments[0].Title = errCreate.Error()
+				} else {
+					notify.Attachments[0].Color = notification.StatusColorActionSuccess
+					notify.Attachments[0].Title = fmt.Sprintf("success | creating photo: %d [%s]", resMPhoto.Id, resMPhoto.Url)
+				}
+				utils.Throw(notification.SlackClient.SendMsg(notify))
+				return RenderOptionListUpdate(func() tea.Msg { return RenderMsg{} })
 			}
 			m.increaseFocusCursor()
 		case tea.KeyCtrlC, tea.KeyEsc:
