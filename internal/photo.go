@@ -45,10 +45,51 @@ func Create(reqPhoto MPhoto) (*MPhoto, error) {
 	return &resPhoto, nil
 }
 
-func Read() ([]MPhoto, error) {
+type MPhotosFilter struct {
+	Title string
+	Start int
+	Limit int
+}
+
+type MPhotosFilterOption func(*MPhotosFilter)
+
+func WithTitle(title string) MPhotosFilterOption {
+	return func(f *MPhotosFilter) {
+		f.Title = title
+	}
+}
+
+func WithStart(start int) MPhotosFilterOption {
+	return func(f *MPhotosFilter) {
+		f.Start = start
+	}
+}
+
+func WithLimit(limit int) MPhotosFilterOption {
+	return func(f *MPhotosFilter) {
+		f.Limit = limit
+	}
+}
+
+func NewMPhotosFilter(fns ...MPhotosFilterOption) MPhotosFilter {
+	f := MPhotosFilter{
+		Limit: 10,
+	}
+	for _, fn := range fns {
+		fn(&f)
+	}
+	return f
+}
+
+type MPhotoReadResponse struct {
+	Photos     []MPhoto
+	TotalCount int
+}
+
+func Read(mPhotoFilter MPhotosFilter) (*MPhotoReadResponse, error) {
 	req, errNewReq := http.NewRequest(
 		http.MethodGet,
-		BaseUrl,
+		fmt.Sprintf("%s?title_like=%s", BaseUrl, mPhotoFilter.Title),
 		nil,
 	)
 	if errNewReq != nil {
@@ -65,7 +106,17 @@ func Read() ([]MPhoto, error) {
 	if err := json.NewDecoder(res.Body).Decode(&resPhotos); err != nil {
 		return nil, fmt.Errorf("err | decoding response: %v", err)
 	}
-	return resPhotos, nil
+	var slicePhotos []MPhoto
+	totalCount := len(resPhotos)
+	for i := 0; i < totalCount; i++ {
+		if i >= mPhotoFilter.Start && i < mPhotoFilter.Start+mPhotoFilter.Limit {
+			slicePhotos = append(slicePhotos, resPhotos[i])
+		}
+	}
+	return &MPhotoReadResponse{
+		Photos:     slicePhotos,
+		TotalCount: totalCount,
+	}, nil
 }
 
 func Update(photo MPhoto) error {
