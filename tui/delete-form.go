@@ -9,6 +9,8 @@ import (
 
 	"github.com/PhotoManager/internal"
 	"github.com/PhotoManager/notification"
+	"github.com/PhotoManager/tui/common"
+	"github.com/PhotoManager/tui/constants"
 	"github.com/PhotoManager/utils"
 )
 
@@ -20,10 +22,9 @@ type MDeleteForm struct {
 
 func NewMDeleteForm() MDeleteForm {
 	input := textinput.New()
-	input.Prompt = "Id: "
-	input.Placeholder = "1"
+	input.Placeholder = "1, 2, 3, ..."
 	input.Focus()
-	input.CharLimit = 50
+	input.CharLimit = 5
 	input.Width = 50
 
 	return MDeleteForm{
@@ -48,9 +49,9 @@ func (m *MDeleteForm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				notify.Attachments[0].Title = fmt.Sprintf("success | deleting photo: %d", idDelete)
 			}
 			utils.Throw(notification.SlackClient.SendMsg(notify))
-			return RenderOptionListUpdate(func() tea.Msg { return RenderMsg{} })
+			return RenderOptionListUpdate(func() tea.Msg { return constants.RenderMsg{} })
 		case tea.KeyCtrlC, tea.KeyEsc:
-			return RenderOptionListUpdate(func() tea.Msg { return RenderMsg{} })
+			return RenderOptionListUpdate(func() tea.Msg { return constants.RenderMsg{} })
 		}
 	}
 	var cmd tea.Cmd
@@ -60,9 +61,10 @@ func (m *MDeleteForm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *MDeleteForm) View() string {
-	s := "Delete Photo\n\n"
-	s += m.input.View()
-	s += "\n\nPress 'ctrl+c' or 'esc' to quit."
+	s := "\n" + common.TitleStyle.Render(" ❯ Delete photo") + "\n\n"
+	s += common.PromptStyle.Width(m.input.Width).Render(" Id: ") + "\n"
+	s += m.input.View() + "\n\n\n"
+	s += common.PlaceholderStyle.Render("[enter] submit • [esc / ctrl + c] quit")
 	return s
 }
 
@@ -79,5 +81,5 @@ func RenderDeleteFormView() string {
 func RenderDeleteFormUpdate() (tea.Model, tea.Cmd) {
 	m := NewMDeleteForm()
 	m.Init()
-	return m.Update(func() tea.Msg { return RenderMsg{} })
+	return m.Update(func() tea.Msg { return constants.RenderMsg{} })
 }

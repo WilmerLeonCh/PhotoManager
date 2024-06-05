@@ -5,6 +5,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
+	"github.com/PhotoManager/tui/common"
 	"github.com/PhotoManager/utils"
 )
 
@@ -52,9 +53,9 @@ func (m *MOptionList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.Type {
-		case tea.KeyTab, tea.KeyDown:
+		case tea.KeyDown:
 			m.increaseViewCursor()
-		case tea.KeyShiftTab, tea.KeyUp:
+		case tea.KeyUp:
 			m.decreaseViewCursor()
 		case tea.KeyEnter:
 			m.tuiSelected = view(m.tuiCursor)
@@ -118,15 +119,15 @@ func (m *MOptionList) handleCmd() (tea.Model, tea.Cmd) {
 }
 
 func (m *MOptionList) RenderOptionListView() string {
-	s := "What would you like to do?\n\n"
+	s := "\n" + common.TitleStyle.Render(" What would you like to do?") + "\n\n"
 	for i, choice := range choiceActions {
 		cursor := " "
 		if tuiCursor(i) == m.tuiCursor {
-			cursor = ">"
+			cursor = "❯"
 		}
-		s += fmt.Sprintf("%s %s\n", cursor, choice)
+		s += common.OptionListStyle.Render(fmt.Sprintf("%s %s", cursor, choice))
 	}
-	s += "\nPress 'ctrl+c' or 'esc' to quit.\n"
+	s += "\n\n" + common.PlaceholderStyle.Render("[↑] up • [↓] down • [enter] select • [esc / ctrl + c] quit")
 	return s
 }
 

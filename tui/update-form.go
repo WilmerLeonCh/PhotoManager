@@ -7,6 +7,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/PhotoManager/internal"
+	"github.com/PhotoManager/tui/common"
+	"github.com/PhotoManager/tui/constants"
 	"github.com/PhotoManager/utils"
 )
 
@@ -26,23 +28,23 @@ type MUpdateForm struct {
 func NewMUpdateForm() MUpdateForm {
 	var inputs = make([]textinput.Model, 3)
 	inputs[idUpdate] = textinput.New()
-	inputs[idUpdate].Prompt = "Id: "
-	inputs[idUpdate].Placeholder = "1"
+	inputs[idUpdate].Prompt = "  "
+	inputs[idUpdate].Placeholder = "1, 2, 3, ..."
 	inputs[idUpdate].Focus()
 	inputs[idUpdate].CharLimit = 50
 	inputs[idUpdate].Width = 50
 
 	inputs[titleUpdate] = textinput.New()
-	inputs[titleUpdate].Prompt = "Title: "
+	inputs[titleUpdate].Prompt = "  "
 	inputs[titleUpdate].Placeholder = "lorem impsun ..."
 	inputs[titleUpdate].CharLimit = 50
 	inputs[titleUpdate].Width = 50
 
 	inputs[urlUpdate] = textinput.New()
-	inputs[urlUpdate].Prompt = "Url: "
+	inputs[urlUpdate].Prompt = "  "
 	inputs[urlUpdate].Placeholder = "https://pexels.com/..."
-	inputs[urlUpdate].CharLimit = 100
-	inputs[urlUpdate].Width = 50
+	inputs[urlUpdate].CharLimit = 1000
+	inputs[urlUpdate].Width = 100
 
 	return MUpdateForm{
 		inputs:      inputs,
@@ -59,19 +61,19 @@ func (m *MUpdateForm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.Type {
-		case tea.KeyTab, tea.KeyDown:
+		case tea.KeyDown:
 			m.increaseFocusCursor()
-		case tea.KeyShiftTab, tea.KeyUp:
+		case tea.KeyUp:
 			m.decreaseFocusCursor()
 		case tea.KeyEnter:
 			if m.focusCursor == len(m.inputs)-1 && m.inputs[titleCreate].Value() != "" {
 				utils.Throw(internal.Update(*formUpdatePhoto))
-				return RenderOptionListUpdate(func() tea.Msg { return RenderMsg{} })
+				return RenderOptionListUpdate(func() tea.Msg { return constants.RenderMsg{} })
 			}
 			m.increaseFocusCursor()
 		case tea.KeyCtrlC, tea.KeyEsc:
 			formUpdatePhoto = nil
-			return RenderOptionListUpdate(func() tea.Msg { return RenderMsg{} })
+			return RenderOptionListUpdate(func() tea.Msg { return constants.RenderMsg{} })
 		default:
 			break
 		}
@@ -88,14 +90,14 @@ func (m *MUpdateForm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *MUpdateForm) View() string {
-	s := "Update photo\n\n"
-	for i, input := range m.inputs {
-		s += input.View()
-		if i < len(m.inputs)-1 {
-			s += "\n\n"
-		}
-	}
-	s += "\n\nPress 'ctrl+c' or 'esc' to quit."
+	s := "\n" + common.TitleStyle.Render(" ❯ Update photo") + "\n\n"
+	s += common.PromptStyle.Width(m.inputs[idUpdate].Width).Render(" Id: ") + "\n"
+	s += m.inputs[idUpdate].View() + "\n"
+	s += common.PromptStyle.Width(m.inputs[titleUpdate].Width).Render(" Title: ") + "\n"
+	s += m.inputs[titleUpdate].View() + "\n"
+	s += common.PromptStyle.Width(m.inputs[urlUpdate].Width).Render(" Url: ") + "\n"
+	s += m.inputs[urlUpdate].View() + "\n\n\n"
+	s += common.PlaceholderStyle.Render("[↑] up • [↓] down • [enter] submit • [esc / ctrl + c] quit")
 	return s
 }
 
@@ -130,5 +132,5 @@ func RenderUpdateFormView() string {
 func RenderUpdateFormUpdate() (tea.Model, tea.Cmd) {
 	m := NewMUpdateForm()
 	m.Init()
-	return m.Update(func() tea.Msg { return RenderMsg{} })
+	return m.Update(func() tea.Msg { return constants.RenderMsg{} })
 }

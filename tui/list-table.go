@@ -9,6 +9,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/PhotoManager/internal"
+	"github.com/PhotoManager/tui/common"
+	"github.com/PhotoManager/tui/constants"
 	"github.com/PhotoManager/utils"
 )
 
@@ -31,7 +33,7 @@ type MListTable struct {
 
 func NewMListTable() MListTable {
 	mInput := textinput.New()
-	mInput.Prompt = "Search by title: "
+	mInput.Prompt = "  "
 	mInput.Placeholder = "lorem impsun ..."
 	mInput.Focus()
 	mInput.CharLimit = 50
@@ -47,10 +49,17 @@ func NewMListTable() MListTable {
 		table.WithFocused(true),
 		table.WithHeight(defaultLimit),
 	)
+	s := table.Styles{
+		Header:   common.HeaderTableStyle,
+		Selected: common.SelectedTableStyle,
+	}
+	mTable.SetStyles(s)
 
 	mPaginator := paginator.New()
 	mPaginator.Type = paginator.Dots
 	mPaginator.PerPage = defaultLimit
+	mPaginator.ActiveDot = "•"
+	mPaginator.InactiveDot = "◦"
 
 	startCurrentPage = defaultStart
 	reloadReading = true
@@ -67,7 +76,7 @@ func (m *MListTable) Init() tea.Cmd { return textinput.Blink }
 func (m *MListTable) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
-	case RenderMsg:
+	case constants.RenderMsg:
 		return m, nil
 	case tea.KeyMsg:
 		switch msg.Type {
@@ -120,7 +129,7 @@ func (m *MListTable) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			titleSearch = m.inputTitleSearch.Value()
 			reloadReading = true
 		case tea.KeyCtrlC, tea.KeyEsc:
-			return RenderOptionListUpdate(func() tea.Msg { return RenderMsg{} })
+			return RenderOptionListUpdate(func() tea.Msg { return constants.RenderMsg{} })
 		default:
 			break
 		}
@@ -143,11 +152,12 @@ func (m *MListTable) View() string {
 		reloadReading = false
 	}
 
-	s := "List & Search photos\n\n"
+	s := "\n" + common.TitleStyle.Render(" ❯ List & Search photos") + "\n\n"
+	s += common.PromptStyle.Width(m.inputTitleSearch.Width).Render(" Search by title: ") + "\n"
 	s += m.inputTitleSearch.View() + "\n\n"
-	s += m.table.View() + "\n\n"
-	s += m.paginator.View() + "\n\n"
-	s += "Press 'ctrl+c' or 'esc' to quit."
+	s += common.TableStyle.Render(m.table.View()) + "\n\n"
+	s += m.paginator.View()
+	s += "\n\n\n" + common.PlaceholderStyle.Render("[↑] up • [↓] down • [ctrl + →] next pag • [ctrl + ←] prev pag • [enter] search • [esc / ctrl + c] quit")
 	return s
 }
 
@@ -170,5 +180,5 @@ func RenderListTableView() string {
 
 func RenderListTableUpdate() (tea.Model, tea.Cmd) {
 	m := NewMListTable()
-	return m.Update(func() tea.Msg { return RenderMsg{} })
+	return m.Update(func() tea.Msg { return constants.RenderMsg{} })
 }
