@@ -1,3 +1,3 @@
-package tui
+package constants
 
 type RenderMsg struct{}
