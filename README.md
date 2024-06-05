@@ -1,6 +1,9 @@
 # Photo-Manager
 ✨ A console application to manage photos from the JSONPlaceHolder API and notify Slack when a photo is created or deleted.
 
+# Demo
+![demo](demo.gif)
+
 ## Built with
 - [Go](https://golang.org/)
 - [Bubbletea](https://github.com/charmbracelet/bubbletea)
